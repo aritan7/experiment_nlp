@@ -9,26 +9,29 @@ import scipy.spatial
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
-parser.add_argument("-f", "--file", dest="filename", required=True,
+parser.add_argument("-f", "--file", dest="input_filename", required=True,
                     help="corpus input file", metavar="FILE")
-parser.add_argument("-q", "--query",dest="query", nargs='+', required=True,
-                    help="query")
+parser.add_argument("-q", "--query", dest="query_filename", required=True,
+                    help="corpus input file", metavar="FILE")
+                    
+# parser.add_argument("-q", "--query",dest="query", nargs='+', required=True,
+#                     help="query")
 args = parser.parse_args()
 
-with open(args.filename, 'r', encoding='utf-8') as f:
+with open(args.input_filename, 'r', encoding='utf-8') as f:
     corpus = f.read().split('\n')
-
+with open(args.query_filename, 'r', encoding='utf-8') as f:
+    queries = f.read().split('\n')
 embedder = SentenceTransformer('bert-base-nli-mean-tokens')
 
 corpus_embeddings = embedder.encode(corpus)
 
 # Query sentences:
-queries = ['A man is eating pasta.', 'Someone in a gorilla costume is playing a set of drums.', 'A cheetah chases prey on across a field.']
-query_embeddings = embedder.encode(args.query)
+query_embeddings = embedder.encode(queries)
 
 # Find the closest 5 sentences of the corpus for each query sentence based on cosine similarity
 closest_n = 5
-for query, query_embedding in zip(args.query, query_embeddings):
+for query, query_embedding in zip(queries, query_embeddings):
     distances = scipy.spatial.distance.cdist([query_embedding], corpus_embeddings, "cosine")[0]
 
     results = zip(range(len(distances)), distances)
